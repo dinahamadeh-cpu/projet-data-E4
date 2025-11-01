@@ -4,7 +4,7 @@ projet data E4
 ## User Guide
 Pour utiliser notre Dashboard sur une utre machine, il faut faire les actions suivantes à partir de git : 
  ``` 
-git clone blablabla
+git clone [blablabla](https://github.com/dinahamadeh-cpu/projet-data-E4.git)
 python -m pip install -r requirements.txt 
 python main.py
 ``` 
