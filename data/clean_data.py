@@ -27,14 +27,12 @@ def clean_data(df):
 def main():
     db_dir = os.path.dirname(config.db_name)
     
-    # 2. Créer le répertoire si nécessaire
-    # os.makedirs(..., exist_ok=True) garantit qu'aucune erreur n'est levée si le dossier existe déjà.
-    if db_dir: # S'assure que le chemin n'est pas vide (si db_name était juste "test.db")
+    #créer le dossier si non existant
+    if db_dir: 
         os.makedirs(db_dir, exist_ok=True)
         print(f"Dossier de sortie vérifié/créé : {db_dir}")
-    # -----------------------------
 
-    # La connexion ne sera tentée qu'après la création du dossier
+    # connexion à la base de données 
     con= sqlite3.connect(config.db_name)
 
     try:
