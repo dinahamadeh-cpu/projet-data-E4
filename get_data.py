@@ -4,7 +4,7 @@ import requests
 
 def fetch_data(
     url: str = "https://www.data.gouv.fr/api/1/datasets/r/5f71ba43-afc8-43a0-b306-dafe29940f9c",
-    output_path: str = "C:\\Users\\achve\\OneDrive - ESIEE Paris\\Documents\\projet_data\\data\\raw\\effectifs.csv"
+    output_path: str = "data/rawdata/"
 ) -> None:
 
     
@@ -20,10 +20,11 @@ def fetch_data(
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
-        print(f"✅ Données enregistrées dans : {output_path}")
+        print(f" Données enregistrées dans : {output_path}")
     except requests.exceptions.RequestException as e:
         print(f"Erreur lors du téléchargement : {e}")
 
 
 if __name__ == "__main__":
     fetch_data()
+
