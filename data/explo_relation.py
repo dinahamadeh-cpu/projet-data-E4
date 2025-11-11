@@ -42,4 +42,17 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "patho_par_classe_age.png"))
 plt.close()
 
+#  Pathologie en fonction du sexe
+# =============================
+plt.figure(figsize=(10, 6))
+sns.countplot(data=df, x="libelle_sexe", hue="patho_niv1", palette="Paired")
+plt.title("Répartition des pathologies selon le sexe")
+plt.xlabel("Sexe")
+plt.ylabel("Nombre de cas")
+plt.legend(title="Pathologie", bbox_to_anchor=(1.05, 1), loc="upper left")
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "patho_par_sexe.png"))
+plt.close()
+
+
 
