@@ -54,3 +54,15 @@ plt.xlabel("Niveau prioritaire")
 plt.ylabel("Tri")
 plt.show()
 
+# --- Tri moyen par pathologie ---
+for level in ["patho_niv1", "patho_niv2", "patho_niv3"]:
+    tri_patho = df.groupby(level)["tri"].mean().sort_values(ascending=False)
+    print(f"\nTri moyen par {level} (top 10) :")
+    print(tri_patho.head(10))
+    
+    plt.figure(figsize=(10, 6))
+    sns.barplot(y=tri_patho.head(10).index, x=tri_patho.head(10).values, palette="viridis")
+    plt.title(f"Top 10 pathologies avec tri moyen le plus élevé ({level})")
+    plt.xlabel("Tri moyen")
+    plt.ylabel("Pathologie")
+    plt.show()
