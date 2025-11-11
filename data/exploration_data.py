@@ -66,3 +66,19 @@ for level in ["patho_niv1", "patho_niv2", "patho_niv3"]:
     plt.xlabel("Tri moyen")
     plt.ylabel("Pathologie")
     plt.show()
+
+# --- Tri selon sexe et classe d’âge ---
+plt.figure(figsize=(8, 4))
+sns.boxplot(x="libelle_sexe", y="tri", data=df, palette="pastel")
+plt.title("Distribution du tri selon le sexe")
+plt.xlabel("Sexe")
+plt.ylabel("Tri")
+plt.show()
+
+plt.figure(figsize=(10, 4))
+sns.boxplot(x="libelle_classe_age", y="tri", data=df, palette="magma")
+plt.title("Distribution du tri selon la classe d’âge")
+plt.xlabel("Classe d’âge")
+plt.ylabel("Tri")
+plt.xticks(rotation=45)
+plt.show()
