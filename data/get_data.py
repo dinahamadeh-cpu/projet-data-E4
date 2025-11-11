@@ -1,29 +1,69 @@
 import os
-import requests
+import zipfile
+import subprocess
+import config
 
+# --- Étape 1 : Vérification du ZIP et du CSV brut ---
+def check_raw_data(zip_path: str = config.zip_file_name, csv_inside: str = config.csv_in_zip):
+    """
+    Vérifie la présence du fichier ZIP brut et du CSV à l'intérieur.
+    """
+    if not os.path.exists(zip_path):
+        print(f" Le fichier brut est introuvable : {zip_path}")
+        print(" Télécharge-le ou place-le dans le dossier data/rawdata/")
+        return False
 
-def fetch_data(
-    url: str = "https://www.data.gouv.fr/api/1/datasets/r/5f71ba43-afc8-43a0-b306-dafe29940f9c",
-    output_path: str = "C:\\Users\\achve\\OneDrive - ESIEE Paris\\Documents\\projet_data\\data\\raw\\effectifs.csv"
-) -> None:
-
-    
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    
-    headers = {"User-Agent": "Mozilla/5.0 (compatible; DataProjectBot/1.0)"}
-    
-    print(f"Téléchargement des données depuis : {url}")
     try:
-        with requests.get(url, headers=headers, stream=True, timeout=30) as response:
-            response.raise_for_status()
-            with open(output_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-        print(f"✅ Données enregistrées dans : {output_path}")
-    except requests.exceptions.RequestException as e:
-        print(f"Erreur lors du téléchargement : {e}")
+        with zipfile.ZipFile(zip_path, "r") as z:
+            if csv_inside in z.namelist():
+                print(f" Le fichier brut {csv_inside} est bien présent dans {zip_path}")
+                return True
+            else:
+                print(f" Le fichier {csv_inside} n’a pas été trouvé dans le ZIP.")
+                print(f"Contenu trouvé : {z.namelist()}")
+                return False
+    except zipfile.BadZipFile:
+        print(f"Le fichier {zip_path} n’est pas un ZIP valide.")
+        return False
+
+
+# --- Étape 2 : Vérification ou génération du .db nettoyé ---
+def check_cleaned_data(cleaned_db_path: str = config.db_name, cleaning_script_path: str = "data/src/clean_data.py"):
+    """
+    Vérifie si la base nettoyée (.db) existe et est non vide.
+    Si non, exécute automatiquement le script de nettoyage.
+    """
+    os.makedirs(os.path.dirname(cleaned_db_path), exist_ok=True)
+
+    if os.path.exists(cleaned_db_path):
+        size_mb = os.path.getsize(cleaned_db_path) / (1024 * 1024)
+        if size_mb > 1:
+            print(f" Base de données déjà prête ({size_mb:.2f} Mo)")
+            return True
+        else:
+            print(f"  Base trouvée mais semble vide ({size_mb:.2f} Mo). Relancement du nettoyage...")
+    else:
+        print(" Base nettoyée introuvable. Lancement du nettoyage...")
+
+    # Si la base est absente ou vide → lancer le nettoyage
+    try:
+        subprocess.run(["python", cleaning_script_path], check=True)
+        print("Nettoyage terminé avec succès.")
+    except subprocess.CalledProcessError as e:
+        print(f" Erreur lors de l’exécution du script de nettoyage : {e}")
+        return False
+
+    return os.path.exists(cleaned_db_path)
 
 
 if __name__ == "__main__":
-    fetch_data()
+    print(" Vérification des données brutes...")
+    raw_ok = check_raw_data()
+
+    if raw_ok:
+        print("\n Vérification / génération des données nettoyées...")
+        check_cleaned_data()
+    else:
+        print(" Impossible de poursuivre : données brutes manquantes.")
+
+
