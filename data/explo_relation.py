@@ -69,5 +69,32 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "evolution_tri_par_patho.png"))
 plt.close()
 
+# =============================
+#  Évolution de la prévalence moyenne par pathologie
+# =============================
+prev_by_year = df.groupby(["annee", "patho_niv1"])["prev"].mean().reset_index()
+
+plt.figure(figsize=(12, 6))
+sns.lineplot(data=prev_by_year, x="annee", y="prev", hue="patho_niv1", linewidth=2.0)
+plt.title("Évolution de la prévalence moyenne par pathologie")
+plt.xlabel("Année")
+plt.ylabel("Prévalence moyenne (%)")
+plt.legend(title="Pathologie", bbox_to_anchor=(1.05, 1), loc="upper left")
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "evolution_prev_par_patho.png"))
+plt.close()
+
+# =============================
+# Boxplot du tri selon la pathologie
+# =============================
+plt.figure(figsize=(12, 6))
+sns.boxplot(data=df, x="patho_niv1", y="tri", palette="coolwarm")
+plt.title("Distribution du tri selon la pathologie")
+plt.xlabel("Pathologie")
+plt.ylabel("Tri")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "boxplot_tri_par_patho.png"))
+plt.close()
 
 
