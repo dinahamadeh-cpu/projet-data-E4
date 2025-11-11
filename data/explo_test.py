@@ -59,3 +59,42 @@ for col, palette in zip(['libelle_sexe', 'libelle_classe_age'], ['pastel', 'magm
     plt.title(f"Tri par {col}")
     plt.savefig(os.path.join(output_dir, f"boxplot_tri_{col}.png"))
     plt.close()
+
+
+# --- Corrélations ---
+corr = df[['Ntop', 'Npop', 'prev', 'tri']].corr()
+print("\nMatrice de corrélation :\n", corr)
+corr.to_csv(os.path.join(output_dir, "correlation_numeric.csv"))
+
+# --- Tri par année et région ---
+tri_by_year = df.groupby('annee')['tri'].mean()
+tri_by_region = df.groupby('region')['tri'].mean()
+
+tri_by_year.plot(kind='line', figsize=(10,6), title="Tri moyen par année")
+plt.ylabel("Tri moyen")
+plt.savefig(os.path.join(output_dir, "tri_by_year.png"))
+plt.close()
+
+tri_by_region.plot(kind='bar', figsize=(10,6), title="Tri moyen par région")
+plt.ylabel("Tri moyen")
+plt.savefig(os.path.join(output_dir, "tri_by_region.png"))
+plt.close()
+
+# --- Synthèse texte ---
+summary_file = os.path.join(output_dir, "exploration_summary.txt")
+with open(summary_file, "w", encoding="utf-8") as f:
+    f.write("Synthèse exploration complète du dataset\n\n")
+    f.write("Statistiques de tri :\n")
+    f.write(df['tri'].describe().to_string() + "\n\n")
+    f.write("Distribution niveau_prioritaire :\n")
+    f.write(df['niveau_prioritaire_clean'].value_counts().to_string() + "\n\n")
+    f.write("Corrélation entre variables numériques :\n")
+    f.write(corr.to_string() + "\n\n")
+    f.write("Top pathologies tri moyen (niv1,2,3) :\n")
+    for col in ['patho_niv1', 'patho_niv2', 'patho_niv3']:
+        tri_patho = df.groupby(col)['tri'].mean().sort_values(ascending=False)
+        f.write(f"\n{col} :\n{tri_patho.head(10).to_string()}\n")
+    f.write("\nTri moyen par sexe et classe d'âge sauvegardé en images.\n")
+    f.write("Tri moyen par année et région sauvegardé en images.\n")
+
+print(f"\nAnalyse complète sauvegardée dans : {summary_file}")
