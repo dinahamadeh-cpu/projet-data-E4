@@ -106,4 +106,13 @@ def creation_carte_departement(df, titre_legende="Prévalence des pathologies pa
 
     return m.get_root().render()
 
+# test d'éxecution
+if __name__ == "__main__":
+    annee = 2022
+    patho1 = "Maladies infectieuses"
+    patho2 = "COVID-19"
+    patho3 = "Forme sévère"
+    sexe = "Femme"
 
+    df = lecture_BDD_dept(annee, patho1, patho2, patho3, sexe)
+    creation_carte_departement(df, f"Prévalence de {patho3} ({annee}) chez les {sexe}s")
