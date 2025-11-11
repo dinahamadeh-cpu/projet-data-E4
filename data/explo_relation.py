@@ -54,5 +54,20 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "patho_par_sexe.png"))
 plt.close()
 
+# =============================
+# Évolution temporelle du tri moyen par pathologie
+# =============================
+tri_by_year = df.groupby(["annee", "patho_niv1"])["tri"].mean().reset_index()
+
+plt.figure(figsize=(12, 6))
+sns.lineplot(data=tri_by_year, x="annee", y="tri", hue="patho_niv1", linewidth=2.0)
+plt.title("Évolution du tri moyen par pathologie dans le temps")
+plt.xlabel("Année")
+plt.ylabel("Tri moyen")
+plt.legend(title="Pathologie", bbox_to_anchor=(1.05, 1), loc="upper left")
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "evolution_tri_par_patho.png"))
+plt.close()
+
 
 
