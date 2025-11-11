@@ -97,4 +97,29 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "boxplot_tri_par_patho.png"))
 plt.close()
 
+# =============================
+# Corrélation entre variables quantitatives
+# =============================
+quant_vars = ["Ntop", "Npop", "prev", "tri"]
+corr = df[quant_vars].corr()
+
+plt.figure(figsize=(6, 5))
+sns.heatmap(corr, annot=True, cmap="RdBu_r", center=0)
+plt.title("Corrélation entre les variables numériques")
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "correlation_heatmap.png"))
+plt.close()
+
+# =============================
+#  Scatterplot : Ntop vs tri
+# =============================
+plt.figure(figsize=(8, 6))
+sns.scatterplot(data=df, x="Ntop", y="tri", hue="patho_niv1", alpha=0.7, palette="tab10")
+plt.title("Relation entre effectif pris en charge (Ntop) et tri, selon la pathologie")
+plt.xlabel("Ntop")
+plt.ylabel("Tri")
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "scatter_ntop_vs_tri.png"))
+plt.close()
+
 
