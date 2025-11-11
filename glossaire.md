@@ -2,7 +2,7 @@
 
 | Synthax | Description| format |
 | ----------- | ----------- |------------|
-| annee | année des données | `year` |
+| annee | année des données | `int` |
 | patho_niv1 | groupe de pathologies (ou traitements chroniques ou épisodes de soins) | `string`|
 | patho_niv2 | sous-groupe de pathologies (ou traitements chroniques ou épisodes de soins) | `string`|
 |patho_niv3 | sous-groupe détaillé de pathologies (ou traitements chroniques ou épisodes de soins)| `string`|
@@ -13,7 +13,7 @@
 |dept | département| `string`|
 |Ntop |effectif de patients pris en charge pour la pathologie (ou traitement chronique ou épisode de soins) dont il est question| `int`|
 | Npop |population de référence qui est celle de la cartographie des pathologies et des dépenses de l’Assurance Maladie|`int`|
-| prev |prévalence de patients pris en charge pour la pathologie (ou traitement chronique ou épisode de soins) dont il est question |`string`|
+| prev |prévalence de patients pris en charge pour la pathologie (ou traitement chronique ou épisode de soins) dont il est question |`float`|
 | Niveau prioritaire | *Aucune description n'est disponible pour ce champ.*|`string`|
 |libelle_classe_age |libellé de la classe d’âge |`string`|
 | libelle_sexe | libelle du sexe |`string`|
