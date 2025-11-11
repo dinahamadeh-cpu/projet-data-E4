@@ -122,4 +122,17 @@ plt.tight_layout()
 plt.savefig(os.path.join(output_dir, "scatter_ntop_vs_tri.png"))
 plt.close()
 
+# =============================
+#  Prévalence vs Tri selon le sexe
+# =============================
+plt.figure(figsize=(8, 6))
+sns.scatterplot(data=df, x="prev", y="tri", hue="libelle_sexe", alpha=0.7, palette="pastel")
+plt.title("Relation entre prévalence et tri selon le sexe")
+plt.xlabel("Prévalence (%)")
+plt.ylabel("Tri")
+plt.tight_layout()
+plt.savefig(os.path.join(output_dir, "scatter_prev_vs_tri_par_sexe.png"))
+plt.close()
+
+print(f"\n Tous les graphiques relationnels ont été enregistrés dans : {output_dir}")
 
