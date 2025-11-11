@@ -3,7 +3,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import config
 from src.hierarchiepatho import get_patho_hierarchy
-from src.carte_departements import lecture_BDD, creation_carte_region
+from src.carte_region import lecture_BDD, creation_carte_region
 
 # 1. Initialisation et chargement des options statiques
 app = dash.Dash(__name__)
@@ -34,7 +34,13 @@ app.layout = html.Div([
                           value= config.SEXE[-1],
                            clearable=False ), # Configuration inchangée
             ], style={'width': '24%', 'display': 'inline-block'}),
-        
+        html.Div([
+            html.Label("Âge :"),
+            dcc.Dropdown(id='selecteur-age', 
+                         options=[{'label':i, 'value': i}for i in config.AGE],
+                          value= config.AGE[-1],
+                           clearable=False ), # Configuration inchangée
+        ], style={'width': '24%', 'display': 'inline-block'}),
         # NOUVEAU : Sélecteur Patho_Niv1
         html.Div([
             html.Label("Pathologie - Niveau 1 :"),
@@ -120,14 +126,15 @@ def set_patho_niv3_options(selected_niv1, selected_niv2):
     Input('selecteur-patho-niv1', 'value'),
     Input('selecteur-patho-niv2', 'value'),
      Input('selecteur-patho-niv3', 'value'),
-     Input('selecteur-sexe', 'value')]
+     Input('selecteur-sexe', 'value'),
+     Input('selecteur-age', 'value')]
 )
-def mettre_a_jour_carte(annee, patho_niv1, patho_niv2, patho_niv3, sexe ):
+def mettre_a_jour_carte(annee, patho_niv1, patho_niv2, patho_niv3, sexe, age): 
     if patho_niv1 is None:
         return "" 
     
     # Lecture BDD
-    df_filtre = lecture_BDD(annee, patho_niv1,  patho_niv2, patho_niv3,sexe )
+    df_filtre = lecture_BDD(annee, patho_niv1,  patho_niv2, patho_niv3,sexe,age )
     
     # Création du titre et de la carte
     titre = f"Total Patients ({sexe}, {patho_niv1}, {annee})"

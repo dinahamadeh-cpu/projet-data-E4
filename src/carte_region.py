@@ -6,7 +6,7 @@ import config
 from src.hierarchiepatho import get_patho_hierarchy
 
 
-def lecture_BDD(annee_selectionnee, patho_niveau1_selectionne, patho_niveau2_selectionne,patho_niveau3_selectionne, sexe_selectionne):
+def lecture_BDD(annee_selectionnee, patho_niveau1_selectionne, patho_niveau2_selectionne,patho_niveau3_selectionne, sexe_selectionne, age_selectionne):
 
     
 
@@ -22,6 +22,7 @@ def lecture_BDD(annee_selectionnee, patho_niveau1_selectionne, patho_niveau2_sel
         AND {config.COL_PATHO_NV2} = "{patho_niveau2_selectionne}"
         AND {config.COL_PATHO_NV3} = "{patho_niveau3_selectionne}"
         AND {config.COL_SEXE} = "{sexe_selectionne}"
+        AND {config.COL_TRANCHE_AGE} = '{age_selectionne}' 
         AND {config.COL_ANNEE} = {annee_selectionnee}
     GROUP BY {config.COL_CODE_REGION}
     """
@@ -34,7 +35,7 @@ def creation_carte_region(df, titre_legende):
     gdf_region = gpd.read_file(config.region_geojson)
 
     #jointure entre le GeoDataFrame des régions et les données
-    merged = gdf_region.merge( df, left_on='code', right_on=config.COL_CODE_REGION, how='left')
+    merged = gdf_region.merge(df, left_on='code', right_on=config.COL_CODE_REGION, how='left')
 
     # création de la carte
     m = folium.Map(location=config.COORDS, zoom_start=config.MAP_ZOOM_START, tiles='CartoDB Positron')
@@ -43,7 +44,7 @@ def creation_carte_region(df, titre_legende):
         geo_data=merged.to_json(),
         name='Données par Region',
         data= df,
-        columns=[config.COL_CODE_REGION,'Ntop'],
+        columns=[config.COL_CODE_REGION,'Npop'],
         key_on='feature.properties.code',  # Assurez-vous que cela correspond à la structure de votre GeoJSON
         fill_color='YlGn',
         fill_opacity=0.7,
