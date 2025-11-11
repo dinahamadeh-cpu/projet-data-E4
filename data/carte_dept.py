@@ -13,7 +13,7 @@ def lecture_BDD_dept(annee_selectionnee, patho_niveau1, patho_niveau2, patho_niv
     conn = sqlite3.connect(config.db_name)
     query = f"""
     SELECT 
-        {config.COL_CODE_DEPT} AS code_dept,
+        {config.COL_CODE_DEPT} AS dept,
         SUM({config.COL_NTOP}) AS Ntop,
         SUM({config.COL_NPOP}) AS Npop,
         AVG({config.COL_PREV}) AS prev
@@ -32,7 +32,6 @@ def lecture_BDD_dept(annee_selectionnee, patho_niveau1, patho_niveau2, patho_niv
     return df
 
 
-
 def creation_carte_departement(df, titre_legende="Prévalence des pathologies par département"):
     """
     Crée une carte Folium des pathologies en fonction des départements.
@@ -42,7 +41,8 @@ def creation_carte_departement(df, titre_legende="Prévalence des pathologies pa
     gdf_dept = gpd.read_file(config.dept_geojson)
 
     # Jointure avec les données
-    merged = gdf_dept.merge(df, left_on="code", right_on="code_dept", how="left")
+    merged = gdf_dept.merge(df, left_on="code", right_on="dept", how="left")
+
 
     # Création de la carte centrée sur la France
     m = folium.Map(location=config.COORDS, zoom_start=config.MAP_ZOOM_START, tiles="CartoDB Positron")
@@ -52,7 +52,7 @@ def creation_carte_departement(df, titre_legende="Prévalence des pathologies pa
         geo_data=merged.to_json(),
         name="Pathologies par département",
         data=df,
-        columns=["code_dept", "Ntop"],
+        columns=["dept", "Ntop"],
         key_on="feature.properties.code",
         fill_color="YlOrRd",
         fill_opacity=0.7,
@@ -106,13 +106,20 @@ def creation_carte_departement(df, titre_legende="Prévalence des pathologies pa
 
     return m.get_root().render()
 
-# test d'éxecution
+
+# Exemple d’exécution directe
+# ===============================
 if __name__ == "__main__":
     annee = 2022
-    patho1 = "Maladies infectieuses"
-    patho2 = "COVID-19"
-    patho3 = "Forme sévère"
-    sexe = "Femme"
+    patho1 = "Hospitalisation pour Covid-19"
+    patho2 = "Hospitalisation pour Covid-19"
+    patho3 = "Hospitalisation pour Covid-19"
+    sexe = "femmes"  #  attention, ta base contient "hommes" et "femmes" en minuscules
 
     df = lecture_BDD_dept(annee, patho1, patho2, patho3, sexe)
-    creation_carte_departement(df, f"Prévalence de {patho3} ({annee}) chez les {sexe}s")
+
+    if df.empty:
+        print(" Aucune donnée trouvée pour cette combinaison. Essaie avec d’autres filtres.")
+    else:
+        creation_carte_departement(df, f"Prévalence de {patho3} ({annee}) chez les {sexe}")
+        print(" Carte des pathologies par département générée avec succès.")
