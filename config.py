@@ -15,7 +15,7 @@ COL_NPOP = "Npop"
 COL_PREV = "prev"
 COL_SEXE = "libelle_sexe"
 COL_ANNEE = "annee"
-
+COL_AGE= "libelle_classe_age"
 # --- Fichiers géographiques ---
 region_geojson = "data/geo/regions.geojson"
 dept_geojson = "data/geo/departement.geojson"
