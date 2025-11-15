@@ -4,38 +4,30 @@ import pandas as pd
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
 import plotly.express as px
-# Importation de plotly.graph_objects (go) pour créer une figure vide sans erreur
 import plotly.graph_objects as go
-import config  # ton fichier config.py
+import config
 
-# =====================================================
-# 1️⃣ Connexion à la base SQLite et lecture des données
-# =====================================================
+# =============================================
+# Connexion à la base SQLite
+# =============================================
 db_path = config.db_name
-
-# Vérification de l'existence du fichier
 if not os.path.exists(db_path):
-    # Il est préférable de gérer cette erreur en dehors de l'application Dash si possible,
-    # ou de renvoyer un layout d'erreur si l'application doit démarrer sans les données.
-    raise FileNotFoundError(f"Le fichier DB n'existe pas à cet emplacement : {db_path}")
+    raise FileNotFoundError(f"Base introuvable : {db_path}")
 
-# Connexion et lecture
 conn = sqlite3.connect(db_path)
 query = f"SELECT * FROM {config.table_name}"
 df = pd.read_sql_query(query, conn)
 conn.close()
 
-print(f"✅ Données chargées depuis {db_path} ({df.shape[0]} lignes, {df.shape[1]} colonnes)")
-
-# =====================================================
-# 2️⃣ Initialisation de l’application Dash
-# =====================================================
+# =============================================
+# Création de l'app Dash
+# =============================================
 app = Dash(__name__)
-app.title = "Dashboard Pathologies"
+app.title = "Dashboard Pathologies Étendu"
 
-# =====================================================
-# 3️⃣ Layout du dashboard
-# =====================================================
+# =============================================
+# Layout
+# =============================================
 app.layout = html.Div([
     html.H1("🩺 Dashboard Pathologies France", style={'textAlign': 'center'}),
 
@@ -61,80 +53,134 @@ app.layout = html.Div([
 
     html.Br(),
 
-    # Histogrammes
+    html.H2("Histogrammes principaux"),
     dcc.Graph(id='graph-tri'),
     dcc.Graph(id='graph-ntop'),
     dcc.Graph(id='graph-prev'),
+
+    html.H2("Analyses régionales & départementales"),
+    dcc.Graph(id='graph-region'),
+    dcc.Graph(id='graph-dept'),
+
+    html.H2("Analyse : Prévalence ↔ Ntop"),
+    dcc.Graph(id='graph-scatter'),
+
+    html.H2("Boxplots"),
+    dcc.Graph(id='graph-box-region'),
+    dcc.Graph(id='graph-box-age'),
 ])
 
-# =====================================================
-# 4️⃣ Callbacks : mise à jour des graphiques
-# =====================================================
+# =============================================
+# Callback : mise à jour des graphiques
+# =============================================
 @app.callback(
     Output('graph-tri', 'figure'),
     Output('graph-ntop', 'figure'),
     Output('graph-prev', 'figure'),
+    Output('graph-region', 'figure'),
+    Output('graph-dept', 'figure'),
+    Output('graph-scatter', 'figure'),
+    Output('graph-box-region', 'figure'),
+    Output('graph-box-age', 'figure'),
     Input('patho-dropdown', 'value'),
     Input('sexe-dropdown', 'value')
 )
 def update_graphs(selected_patho, selected_sexe):
-    # Filtrage selon pathologie et sexe
+
     df_filtered = df[
         (df[config.COL_PATHO_NV1] == selected_patho) &
         (df[config.COL_SEXE] == selected_sexe)
     ].copy()
 
     if df_filtered.empty:
-        # Correction de l'erreur : plotly.express.histogram() sans DataFrame lève une TypeError.
-        # Nous utilisons go.Figure() pour créer une figure vide et y ajouter le message d'erreur.
-        fig_empty = go.Figure()
-        fig_empty.update_layout(
-            title_text="Aucune donnée pour cette sélection",
-            # Rendre les axes invisibles pour un affichage plus propre
+        empty_fig = go.Figure().update_layout(
+            title="Aucune donnée pour cette sélection",
             xaxis={'visible': False},
-            yaxis={'visible': False},
-            height=300,
-            # Afficher un message au centre de la figure
-            annotations=[{
-                'text': 'Veuillez ajuster les filtres.',
-                'xref': 'paper', 'yref': 'paper',
-                'showarrow': False,
-                'font': {'size': 16}
-            }]
+            yaxis={'visible': False}
         )
-        return fig_empty, fig_empty, fig_empty
+        return tuple([empty_fig] * 8)
 
-    # Histogramme du tri
-    fig_tri = px.histogram(
+    # ----------------------
+    # Histogrammes existants
+    # ----------------------
+    fig_tri = px.histogram(df_filtered, x='tri', nbins=30,
+                           title="Distribution du tri")
+
+    fig_ntop = px.histogram(df_filtered, x=config.COL_NTOP, nbins=30,
+                            title="Distribution du Ntop")
+
+    fig_prev = px.histogram(df_filtered, x=config.COL_PREV, nbins=30,
+                            title="Distribution de la prévalence")
+
+    # ----------------------
+    # Répartition par région
+    # ----------------------
+    fig_region = px.histogram(
         df_filtered,
-        x='tri',
-        nbins=30,
-        title=f"Distribution du tri - {selected_patho} ({selected_sexe})",
-        color_discrete_sequence=['skyblue']
+        x=config.COL_CODE_REGION,
+        title="Répartition des cas par région"
     )
 
-    # Histogramme du Ntop
-    fig_ntop = px.histogram(
+    # ----------------------
+    # Répartition par département
+    # ----------------------
+    fig_dept = px.histogram(
+        df_filtered,
+        x=config.COL_CODE_DEPT,
+        title="Répartition des cas par département"
+    )
+
+    # ----------------------
+    # Scatterplot
+    # ----------------------
+    fig_scatter = px.scatter(
         df_filtered,
         x=config.COL_NTOP,
-        nbins=30,
-        title=f"Distribution du Ntop - {selected_patho} ({selected_sexe})",
-        color_discrete_sequence=['salmon']
+        y=config.COL_PREV,
+        trendline="ols",
+        title="Corrélation : Prévalence vs Ntop"
     )
 
-    # Histogramme de la prévalence
-    fig_prev = px.histogram(
+    # ----------------------
+    # Boxplot par région
+    # ----------------------
+    fig_box_region = px.box(
         df_filtered,
-        x=config.COL_PREV,
-        nbins=30,
-        title=f"Distribution de la prévalence - {selected_patho} ({selected_sexe})",
-        color_discrete_sequence=['lightgreen']
+        x=config.COL_CODE_REGION,
+        y=config.COL_PREV,
+        title="Distribution de la prévalence par région"
     )
 
-    return fig_tri, fig_ntop, fig_prev
+    # ----------------------
+    # Boxplot par âge (si disponible)
+    # ----------------------
+    # if "age" in df_filtered.columns:
+    fig_box_age = px.box(
+        df_filtered,
+        x=config.COL_AGE,
+        y=config.COL_PREV,
+        title="Prévalence en fonction de l'âge"
+        )
+    # else:
+    #     fig_box_age = go.Figure()
+    #     fig_box_age.update_layout(
+    #         title="Aucune colonne 'age' dans la base"
+    #     )
 
-# =====================================================
-# 5️⃣ Lancement de l’application
-# =====================================================
+    return (
+        fig_tri,
+        fig_ntop,
+        fig_prev,
+        fig_region,
+        fig_dept,
+        fig_scatter,
+        fig_box_region,
+        fig_box_age
+    )
+
+
+# =============================================
+# Run app
+# =============================================
 if __name__ == '__main__':
     app.run(debug=True)
