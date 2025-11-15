@@ -1,8 +1,9 @@
 import sqlite3
 import pandas as pd
 import config
+import os
 
-def lecture_BDD(carte_selectionnee,annee_selectionnee, patho_niveau1_selectionne, patho_niveau2_selectionne,patho_niveau3_selectionne, sexe_selectionne, age_selectionne):
+def lecture_BDD_carte(carte_selectionnee,annee_selectionnee, patho_niveau1_selectionne, patho_niveau2_selectionne,patho_niveau3_selectionne, sexe_selectionne, age_selectionne):
 
     if carte_selectionnee == "region":
         col_code = config.COL_CODE_REGION
@@ -28,3 +29,14 @@ def lecture_BDD(carte_selectionnee,annee_selectionnee, patho_niveau1_selectionne
     df_data= pd.read_sql_query(query, conn)
     conn.close()
     return df_data
+
+def lecture_BDD_histo():
+    db_path = config.db_name
+    if not os.path.exists(db_path):
+        raise FileNotFoundError(f"Base introuvable : {db_path}")
+
+    conn = sqlite3.connect(db_path)
+    query = f"SELECT * FROM {config.table_name}"
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df

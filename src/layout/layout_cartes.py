@@ -2,7 +2,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import config
 from src.page.cartes import creation_carte
-from utils.lecture_BDD import lecture_BDD
+from src.utils.lecture_BDD import lecture_BDD_carte
 
 class LayoutCartes:
     @staticmethod
@@ -137,7 +137,7 @@ class LayoutCartes:
                 return "" 
             
             # Lecture BDD
-            df_filtre = lecture_BDD(carte, annee, patho_niv1,  patho_niv2, patho_niv3,sexe,age )
+            df_filtre = lecture_BDD_carte(carte, annee, patho_niv1,  patho_niv2, patho_niv3,sexe,age )
             
             # Création du titre et de la carte
             titre = f"Total Patients ({sexe}, {patho_niv1}, {annee})"
