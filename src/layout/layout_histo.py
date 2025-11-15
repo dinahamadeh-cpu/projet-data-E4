@@ -117,10 +117,28 @@ class LayoutHistogrammes:
             # NOUVEAU GRAPHIQUE : Niveau Prioritaire
             html.Div(style=LayoutHistogrammes.GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-priority')]), 
 
-            # Boxplots
+            # Boxplots (deux colonnes: région et âge avec contrôle local)
             html.Div(style={'display': 'flex', 'gap': '20px'}, children=[
-                html.Div(style={**LayoutHistogrammes.GRAPH_CARD_STYLE, 'flex': 1}, children=[dcc.Graph(id='graph-box-region')]),
-                html.Div(style={**LayoutHistogrammes.GRAPH_CARD_STYLE, 'flex': 1}, children=[dcc.Graph(id='graph-box-age')]),
+                # Boxplot Région
+                html.Div(style={**LayoutHistogrammes.GRAPH_CARD_STYLE, 'flex': 1}, children=[
+                    dcc.Graph(id='graph-box-region')
+                ]),
+
+                # Boxplot Âge + son contrôle local
+                html.Div(style={**LayoutHistogrammes.GRAPH_CARD_STYLE, 'flex': 1}, children=[
+                    # Contrôle local pour le graphique d'âge
+                    html.Div(style={'marginBottom': '15px'}, children=[
+                        html.Label("Choisir l'age :", style={'fontWeight': 'bold', 'color': '#4B5563'}),
+                        dcc.Dropdown(
+                            id='age-dropdown',
+                            options=[{'label': s, 'value': s} for s in config.AGE],
+                            value=config.AGE[-1],
+                            clearable=False,
+                        ),
+                    ]),
+                    # Le graphique d'âge
+                    dcc.Graph(id='graph-box-age')
+                ]),
             ]),
         ])
 
@@ -227,7 +245,7 @@ class LayoutHistogrammes:
             fig_box_region = px.box(df_filtered, x=config.COL_CODE_REGION, y=config.COL_PREV, title=f"Distribution de la prévalence par région - {base_title}", color_discrete_sequence=['#4C7C9E'])
 
             # 5. Boxplot par âge
-            COL_AGE = config.COL_AGE if hasattr(config, 'COL_AGE') else 'age' # Sécurité si COL_AGE n'est pas dans config
+            COL_AGE = config.COL_TRANCHE_AGE if hasattr(config, 'COL_TRANCHE_AGE') else 'COL_TRANCHE_AGE' # Sécurité si COL_AGE n'est pas dans config
             if COL_AGE in df_filtered.columns:
                 fig_box_age = px.box(df_filtered, x=COL_AGE, y=config.COL_PREV, title=f"Prévalence en fonction de l'âge - {base_title}", color_discrete_sequence=['#4C7C9E'])
             else:
