@@ -86,7 +86,7 @@ SECTION_TITLE_STYLE = {
 }
 
 # =============================================
-# Layout (avec les nouveaux styles)
+# Layout (avec les nouveaux graphiques)
 # =============================================
 app.layout = html.Div(style=MAIN_STYLE, children=[
     html.H1(" Dashboard Pathologies France", style=HEADER_STYLE),
@@ -109,7 +109,7 @@ app.layout = html.Div(style=MAIN_STYLE, children=[
             html.Label("Choisir une pathologie :", style={'fontWeight': 'bold', 'color': '#4B5563'}),
             dcc.Dropdown(
                 id='patho-dropdown',
-                style={'width': '100%'} # Pleine largeur dans le conteneur
+                style={'width': '100%'}
             ),
         ]),
         
@@ -126,23 +126,30 @@ app.layout = html.Div(style=MAIN_STYLE, children=[
     ]), # Fin CONTROLS_CONTAINER_STYLE
 
     # SECTION 1: Histogrammes
-    html.H2("Histogrammes principaux", style=SECTION_TITLE_STYLE),
+    html.H2("Distributions de base", style=SECTION_TITLE_STYLE),
     html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-tri')]),
     html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-ntop')]),
     html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-prev')]),
+    
+    # NOUVELLE SECTION : Analyse Temporelle
+    html.H2("Analyse Temporelle", style=SECTION_TITLE_STYLE),
+    html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-time-series')]), # Nouveau graphique
 
     # SECTION 2: Analyses régionales
     html.H2("Analyses régionales & départementales", style=SECTION_TITLE_STYLE),
     html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-region')]),
     html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-dept')]),
 
-    # SECTION 3: Corrélation et Boxplots
-    html.H2("Analyse : Prévalence ↔ Ntop et Boxplots", style=SECTION_TITLE_STYLE),
+    # SECTION 3: Corrélation, Boxplots et Priorité
+    html.H2("Corrélations et Analyses Catégorielles", style=SECTION_TITLE_STYLE),
     
     # Scatterplot
     html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-scatter')]),
+    
+    # NOUVEAU GRAPHIQUE : Niveau Prioritaire
+    html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-priority')]), 
 
-    # Boxplots (mise en page côte à côte possible si on utilise un Div flex ici)
+    # Boxplots
     html.Div(style={'display': 'flex', 'gap': '20px'}, children=[
         html.Div(style={**GRAPH_CARD_STYLE, 'flex': 1}, children=[dcc.Graph(id='graph-box-region')]),
         html.Div(style={**GRAPH_CARD_STYLE, 'flex': 1}, children=[dcc.Graph(id='graph-box-age')]),
@@ -186,6 +193,8 @@ def update_patho_dropdown(selected_level_col_name):
     Output('graph-scatter', 'figure'),
     Output('graph-box-region', 'figure'),
     Output('graph-box-age', 'figure'),
+    Output('graph-time-series', 'figure'),  # Nouvelle sortie
+    Output('graph-priority', 'figure'),      # Nouvelle sortie
     Input('patho-level-dropdown', 'value'), 
     Input('patho-dropdown', 'value'),
     Input('sexe-dropdown', 'value')
@@ -194,7 +203,8 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
     
     # S'assurer qu'une pathologie et un sexe sont sélectionnés pour éviter les erreurs de filtrage
     if selected_patho is None or selected_sexe is None:
-        return tuple([go.Figure()] * 8)
+        # Retourne 10 figures vides (8 anciennes + 2 nouvelles)
+        return tuple([go.Figure()] * 10)
 
     # ----------------------------------------------------
     # Filtrage du DataFrame basé sur la colonne de niveau dynamique
@@ -229,11 +239,14 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
 
     if df_filtered.empty:
         empty_fig = create_empty_figure("Aucune donnée pour cette sélection")
-        return tuple([empty_fig] * 8)
+        # Retourne 10 figures vides (8 anciennes + 2 nouvelles)
+        return tuple([empty_fig] * 10)
 
-    # ----------------------
+    # ==========================================================
+    # GÉNÉRATION DES GRAPHIQUES EXISTANTS
+    # ==========================================================
+
     # 1. Histogrammes
-    # ----------------------
     fig_tri = px.histogram(df_filtered, x='tri', nbins=30,
                            title=f"Distribution du tri - {base_title}",
                            color_discrete_sequence=['#3B82F6'])
@@ -246,9 +259,7 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
                             title=f"Distribution de la prévalence - {base_title}",
                             color_discrete_sequence=['#10B981'])
 
-    # ----------------------
     # 2. Répartition régionale/départementale
-    # ----------------------
     fig_region = px.histogram(
         df_filtered,
         x=config.COL_CODE_REGION,
@@ -263,9 +274,7 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
         color_discrete_sequence=['#A855F7']
     )
 
-    # ----------------------
     # 3. Scatterplot (Corrélation)
-    # ----------------------
     fig_scatter = px.scatter(
         df_filtered,
         x=config.COL_NTOP,
@@ -274,9 +283,7 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
         title=f"Corrélation : Prévalence vs Ntop - {base_title}"
     )
 
-    # ----------------------
-    # 4. Boxplots
-    # ----------------------
+    # 4. Boxplot par région
     fig_box_region = px.box(
         df_filtered,
         x=config.COL_CODE_REGION,
@@ -285,9 +292,8 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
         color_discrete_sequence=['#4C7C9E']
     )
 
-    # Boxplot par âge
+    # 5. Boxplot par âge
     COL_AGE = config.COL_AGE
-    
     if COL_AGE in df_filtered.columns:
         fig_box_age = px.box(
             df_filtered,
@@ -299,7 +305,44 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
     else:
         fig_box_age = create_empty_figure(f"Boxplot de l'âge : Colonne '{COL_AGE}' introuvable")
 
+    # ==========================================================
+    # NOUVEAUX GRAPHIQUES
+    # ==========================================================
+    
+    # 6. Série Temporelle (annee)
+    df_time = df_filtered.groupby('annee', as_index=False).agg(
+        mean_prev=(config.COL_PREV, 'mean'),
+        total_ntop=(config.COL_NTOP, 'sum')
+    )
+    
+    # Utiliser la prévalence moyenne au fil du temps
+    fig_time_series = px.line(
+        df_time,
+        x='annee',
+        y='mean_prev',
+        title=f"Évolution de la Prévalence Moyenne (Année) - {base_title}",
+        markers=True,
+        color_discrete_sequence=['#DC2626'] # Rouge pour le temps
+    ).update_layout(yaxis_title="Prévalence Moyenne")
 
+
+    # 7. Analyse par Niveau Prioritaire
+    # Utilisation d'un boxplot pour visualiser la distribution de la prévalence par niveau
+    if 'Niveau prioritaire' in df_filtered.columns:
+        fig_priority = px.box(
+            df_filtered,
+            x='Niveau prioritaire',
+            y=config.COL_PREV,
+            title=f"Prévalence par Niveau Prioritaire - {base_title}",
+            color_discrete_sequence=['#7C3AED'] # Violet
+        ).update_xaxes(categoryorder='category ascending')
+    else:
+        fig_priority = create_empty_figure("Analyse Prioritaire : Colonne 'Niveau prioritaire' introuvable")
+
+
+    # ==========================================================
+    # RETOURNER TOUTES LES FIGURES (10 au total)
+    # ==========================================================
     return (
         fig_tri,
         fig_ntop,
@@ -308,7 +351,9 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
         fig_dept,
         fig_scatter,
         fig_box_region,
-        fig_box_age
+        fig_box_age,
+        fig_time_series, 
+        fig_priority    
     )
 
 
