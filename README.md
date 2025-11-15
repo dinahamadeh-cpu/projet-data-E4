@@ -46,6 +46,7 @@ https://observatoirepathologies-cnam.opendatasoft.com/explore/dataset/effectifs/
     │   └── lecture_BDD.py
     └── app.py
 ```
+
 ```mermaid
 %% Section 1 : data
 graph TD
@@ -65,6 +66,17 @@ graph TD
   A-->A6[_init_.py]
 ```
 
+```mermaid
+%% Section 3 : Root Files
+graph TD
+    G[Root Files]
+    G --> G1[glossaire.md]
+    G --> G2[config.py]
+    G --> G3[.getattributes]
+    G --> G4[main.py]
+    G --> G5[README.md]
+    G --> G6[requirements.txt]
+```
 ## Rapport d'analyse
 toujours plus de blabla 
 
