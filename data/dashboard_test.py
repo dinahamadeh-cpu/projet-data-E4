@@ -23,7 +23,6 @@ print(f" Données chargées depuis {db_path} ({df.shape[0]} lignes, {df.shape[1]
 
 # =============================================
 # Mappage des niveaux de pathologie aux colonnes
-# (Assure-toi que config.COL_PATHO_NV1, NV2, NV3 sont correctement définis)
 # =============================================
 PATHO_LEVEL_OPTIONS = [
     {'label': 'Niveau 1', 'value': config.COL_PATHO_NV1},
@@ -37,66 +36,117 @@ PATHO_LEVEL_OPTIONS = [
 app = Dash(__name__)
 app.title = "Dashboard Pathologies Étendu"
 
-# =============================================
-# Layout (Ajout du dropdown pour le Niveau de Pathologie)
-# =============================================
-app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif'}, children=[
-    html.H1("🩺 Dashboard Pathologies France", style={'textAlign': 'center', 'color': '#1E3A8A', 'padding': '20px'}),
+# Styles CSS pour une interface moderne
+MAIN_STYLE = {
+    'fontFamily': 'Roboto, Arial, sans-serif',
+    'backgroundColor': '#f5f7fa', # Arrière-plan très clair
+    'padding': '20px'
+}
 
-    html.Div([
+HEADER_STYLE = {
+    'textAlign': 'center', 
+    'color': '#1E3A8A', 
+    'padding': '10px 0',
+    'fontSize': '2.5rem',
+    'borderBottom': '3px solid #E5E7EB',
+    'marginBottom': '20px'
+}
+
+CONTROLS_CONTAINER_STYLE = {
+    'display': 'flex',
+    'flexWrap': 'wrap',
+    'gap': '20px',
+    'padding': '20px',
+    'marginBottom': '30px',
+    'backgroundColor': '#FFFFFF',
+    'borderRadius': '12px',
+    'boxShadow': '0 4px 12px rgba(0, 0, 0, 0.08)'
+}
+
+CONTROL_ITEM_STYLE = {
+    'flexGrow': 1,
+    'minWidth': '250px' 
+}
+
+GRAPH_CARD_STYLE = {
+    'backgroundColor': '#FFFFFF',
+    'borderRadius': '12px',
+    'boxShadow': '0 4px 12px rgba(0, 0, 0, 0.08)',
+    'padding': '15px',
+    'marginBottom': '25px',
+}
+
+SECTION_TITLE_STYLE = {
+    'color': '#374151',
+    'borderLeft': '4px solid #3B82F6',
+    'paddingLeft': '10px',
+    'marginTop': '40px',
+    'marginBottom': '20px',
+    'fontSize': '1.8rem'
+}
+
+# =============================================
+# Layout (avec les nouveaux styles)
+# =============================================
+app.layout = html.Div(style=MAIN_STYLE, children=[
+    html.H1(" Dashboard Pathologies France", style=HEADER_STYLE),
+
+    # CONTROLES D'UTILISATEUR
+    html.Div(style=CONTROLS_CONTAINER_STYLE, children=[
         # SÉLECTEUR DE NIVEAU DE PATHOLOGIE
-        html.Div([
-            html.Label("Choisir le niveau de pathologie :", style={'fontWeight': 'bold'}),
+        html.Div(style=CONTROL_ITEM_STYLE, children=[
+            html.Label("Niveau de pathologie :", style={'fontWeight': 'bold', 'color': '#4B5563'}),
             dcc.Dropdown(
                 id='patho-level-dropdown',
                 options=PATHO_LEVEL_OPTIONS,
                 value=config.COL_PATHO_NV1, # Niveau 1 par défaut
                 clearable=False,
-                style={'backgroundColor': '#F3F4F6'}
             ),
-        ], style={'width': '31%', 'display': 'inline-block', 'marginRight': '3%'}),
+        ]),
 
         # SÉLECTEUR DE PATHOLOGIE (Dynamique)
-        html.Div([
-            html.Label("Choisir une pathologie :", style={'fontWeight': 'bold'}),
+        html.Div(style=CONTROL_ITEM_STYLE, children=[
+            html.Label("Choisir une pathologie :", style={'fontWeight': 'bold', 'color': '#4B5563'}),
             dcc.Dropdown(
                 id='patho-dropdown',
-                # Les options et la valeur initiale seront définies par le callback
-                style={'backgroundColor': '#F3F4F6'}
+                style={'width': '100%'} # Pleine largeur dans le conteneur
             ),
-        ], style={'width': '31%', 'display': 'inline-block', 'marginRight': '3%'}),
+        ]),
         
         # SÉLECTEUR DE SEXE
-        html.Div([
-            html.Label("Choisir le sexe :", style={'fontWeight': 'bold'}),
+        html.Div(style=CONTROL_ITEM_STYLE, children=[
+            html.Label("Choisir le sexe :", style={'fontWeight': 'bold', 'color': '#4B5563'}),
             dcc.Dropdown(
                 id='sexe-dropdown',
                 options=[{'label': s, 'value': s} for s in sorted(df[config.COL_SEXE].dropna().unique())],
                 value=df[config.COL_SEXE].dropna().unique()[0],
                 clearable=False,
-                style={'backgroundColor': '#F3F4F6'}
             ),
-        ], style={'width': '31%', 'display': 'inline-block'}),
+        ]),
+    ]), # Fin CONTROLS_CONTAINER_STYLE
 
-    ], style={'margin': '20px', 'padding': '10px', 'border': '1px solid #E5E7EB', 'borderRadius': '8px', 'backgroundColor': '#FFFFFF'}),
+    # SECTION 1: Histogrammes
+    html.H2("Histogrammes principaux", style=SECTION_TITLE_STYLE),
+    html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-tri')]),
+    html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-ntop')]),
+    html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-prev')]),
 
-    html.Br(),
+    # SECTION 2: Analyses régionales
+    html.H2("Analyses régionales & départementales", style=SECTION_TITLE_STYLE),
+    html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-region')]),
+    html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-dept')]),
 
-    html.H2("Histogrammes principaux", style={'textAlign': 'left', 'color': '#4B5563', 'marginTop': '30px'}),
-    dcc.Graph(id='graph-tri', style={'marginBottom': '20px'}),
-    dcc.Graph(id='graph-ntop', style={'marginBottom': '20px'}),
-    dcc.Graph(id='graph-prev', style={'marginBottom': '20px'}),
+    # SECTION 3: Corrélation et Boxplots
+    html.H2("Analyse : Prévalence ↔ Ntop et Boxplots", style=SECTION_TITLE_STYLE),
+    
+    # Scatterplot
+    html.Div(style=GRAPH_CARD_STYLE, children=[dcc.Graph(id='graph-scatter')]),
 
-    html.H2("Analyses régionales & départementales", style={'textAlign': 'left', 'color': '#4B5563', 'marginTop': '30px'}),
-    dcc.Graph(id='graph-region', style={'marginBottom': '20px'}),
-    dcc.Graph(id='graph-dept', style={'marginBottom': '20px'}),
-
-    html.H2("Analyse : Prévalence ↔ Ntop", style={'textAlign': 'left', 'color': '#4B5563', 'marginTop': '30px'}),
-    dcc.Graph(id='graph-scatter', style={'marginBottom': '20px'}),
-
-    html.H2("Boxplots", style={'textAlign': 'left', 'color': '#4B5563', 'marginTop': '30px'}),
-    dcc.Graph(id='graph-box-region', style={'marginBottom': '20px'}),
-    dcc.Graph(id='graph-box-age', style={'marginBottom': '20px'}),
+    # Boxplots (mise en page côte à côte possible si on utilise un Div flex ici)
+    html.Div(style={'display': 'flex', 'gap': '20px'}, children=[
+        html.Div(style={**GRAPH_CARD_STYLE, 'flex': 1}, children=[dcc.Graph(id='graph-box-region')]),
+        html.Div(style={**GRAPH_CARD_STYLE, 'flex': 1}, children=[dcc.Graph(id='graph-box-age')]),
+    ]),
 ])
 
 # =============================================
@@ -111,7 +161,6 @@ def update_patho_dropdown(selected_level_col_name):
     # 'selected_level_col_name' est le nom de la colonne (ex: 'patho_niv1')
     
     if selected_level_col_name not in df.columns:
-        # En cas d'erreur de configuration (nom de colonne invalide)
         print(f" Erreur: Colonne {selected_level_col_name} introuvable dans le DataFrame.")
         return [], None
     
@@ -137,7 +186,6 @@ def update_patho_dropdown(selected_level_col_name):
     Output('graph-scatter', 'figure'),
     Output('graph-box-region', 'figure'),
     Output('graph-box-age', 'figure'),
-    # Input des niveaux pour le filtrage
     Input('patho-level-dropdown', 'value'), 
     Input('patho-dropdown', 'value'),
     Input('sexe-dropdown', 'value')
@@ -171,7 +219,7 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
             yaxis={'visible': False},
             height=300,
             annotations=[{
-                'text': 'Veuillez ajuster les filtres.',
+                'text': 'Aucune donnée disponible pour cette sélection.',
                 'xref': 'paper', 'yref': 'paper',
                 'showarrow': False,
                 'font': {'size': 16, 'color': '#EF4444'}
@@ -233,7 +281,8 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
         df_filtered,
         x=config.COL_CODE_REGION,
         y=config.COL_PREV,
-        title=f"Distribution de la prévalence par région - {base_title}"
+        title=f"Distribution de la prévalence par région - {base_title}",
+        color_discrete_sequence=['#4C7C9E']
     )
 
     # Boxplot par âge
@@ -244,10 +293,10 @@ def update_graphs(selected_level_col_name, selected_patho, selected_sexe):
             df_filtered,
             x=COL_AGE, 
             y=config.COL_PREV,
-            title=f"Prévalence en fonction de l'âge - {base_title}"
+            title=f"Prévalence en fonction de l'âge - {base_title}",
+            color_discrete_sequence=['#4C7C9E']
         )
     else:
-        print(f" Avertissement : La colonne '{COL_AGE}' n'existe pas. Vérifiez la définition de config.COL_AGE.")
         fig_box_age = create_empty_figure(f"Boxplot de l'âge : Colonne '{COL_AGE}' introuvable")
 
 
