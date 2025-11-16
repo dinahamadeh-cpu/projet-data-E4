@@ -65,7 +65,7 @@ graph TD
   A-->A5[clean_data.py]
   A-->A6[_init_.py]
 ```
-
+```mermaid
 %% Section 2 : src
 graph TD
   S[src]
@@ -80,7 +80,7 @@ graph TD
   S --> S3[utils]
   S3 --> S31[hierarchiepatho.py]
   S3 --> S32[lecture_BDD.py]
-
+```
 
 ```mermaid
 %% Section 3 : Root Files
