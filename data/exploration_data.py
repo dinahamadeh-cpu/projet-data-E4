@@ -82,3 +82,14 @@ plt.xlabel("Classe d’âge")
 plt.ylabel("Tri")
 plt.xticks(rotation=45)
 plt.show()
+
+# --- Corrélation avec les variables numériques ---
+num_cols = ["Ntop", "Npop", "prev", "tri"]
+corr_matrix = df[num_cols].corr()
+print("\nMatrice de corrélation :")
+print(corr_matrix)
+
+plt.figure(figsize=(6, 4))
+sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+plt.title("Corrélation entre les variables numériques")
+plt.show()
