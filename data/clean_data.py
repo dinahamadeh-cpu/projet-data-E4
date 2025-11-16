@@ -101,7 +101,7 @@ def clean_data(df):
     return df_clean
 
 
-def main():
+def run_cleaning_process():
     db_dir = os.path.dirname(config.db_name)
     if db_dir: 
         os.makedirs(db_dir, exist_ok=True)
@@ -130,6 +130,3 @@ def main():
         print(f"Erreur lors de l'enregistrement dans la base de données : {e}")
     finally:
         con.close()
-
-if __name__ == "__main__":
-    main()
