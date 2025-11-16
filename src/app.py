@@ -8,7 +8,6 @@ from src.layout.layout_cartes import LayoutCartes
 import config
 from src.layout.layout_histo import LayoutHistogrammes
 
-
 # 1. Initialisation et chargement des options statiques
 df = lecture_BDD_histo()
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP] ,suppress_callback_exceptions=True)
@@ -30,7 +29,7 @@ app.layout = html.Div([
     
     # Barre de navigation simple
     html.Div([
-        dcc.Link('Cartes Régionales', href='/cartes', style={'marginRight': '20px'}),
+        dcc.Link('Cartes Régionales/Départementales', href='/cartes', style={'marginRight': '20px'}),
         dcc.Link('Analyses & Histogrammes', href='/histogrammes'),
     ], style={'padding': '10px', 'borderBottom': '1px solid #ccc', 'backgroundColor': '#f0f0f0'}),
     
