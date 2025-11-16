@@ -30,7 +30,7 @@ app.layout = html.Div([
     
     # Barre de navigation simple
     html.Div([
-        dcc.Link('Cartes Régionales', href='/cartes', style={'marginRight': '20px'}),
+        dcc.Link('Cartes Régionales/Départementales', href='/cartes', style={'marginRight': '20px'}),
         dcc.Link('Analyses & Histogrammes', href='/histogrammes'),
     ], style={'padding': '10px', 'borderBottom': '1px solid #ccc', 'backgroundColor': '#f0f0f0'}),
     
@@ -52,4 +52,3 @@ def display_page(pathname):
         
 if __name__ == '__main__':
     app.run(debug=True)
-    
