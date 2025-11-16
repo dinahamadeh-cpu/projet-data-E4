@@ -1,6 +1,6 @@
 from data.get_data import ensure_cleaned_data, check_raw_data
-from src.app import app
-import config # Ajout de l'import pour accéder au port si nécessaire
+from src.app import create_app 
+from src.utils.lecture_BDD import lecture_BDD_histo 
 
 def main():
     print(" === Démarrage du Dashboard d'Analyse des Pathologies ===\n")
@@ -10,16 +10,25 @@ def main():
 
     if raw_ok:
         print("\n 2. Vérification / génération des données nettoyées...")
-        # L'appel à ensure_cleaned_data lance le nettoyage si la BDD est absente ou vide.
         data_ok = ensure_cleaned_data() 
         
         if data_ok:
-            print("\n 3. Lancement du serveur Dash...")
+            print("\n 3. Chargement du DataFrame depuis la BDD...")
             try:
-                # Utiliser le port 8050, ou le port défini dans config si vous en avez un
+                df = lecture_BDD_histo()
+            except FileNotFoundError as e:
+                print(f" Erreur critique : {e}. Le fichier de BDD devrait exister à ce stade.")
+                return
+            except Exception as e:
+                print(f" Erreur lors du chargement du DataFrame : {e}")
+                return
+
+            print("\n 4. Lancement du serveur Dash...")
+            try:
+                app = create_app(df) 
+                
                 port_number = 8050 
-                print(f" Dashboard disponible à l'adresse : http://127.0.0.1:{port_number}/")
-                # Attention : Pour une utilisation en production, retirez debug=True.
+                print(f"🌍 Dashboard disponible à l'adresse : http://127.0.0.1:{port_number}/")
                 app.run(debug=True, port=port_number) 
                 
             except Exception as e:
